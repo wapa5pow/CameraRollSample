@@ -20,7 +20,19 @@ public class GameController : MonoBehaviour
 		} else if (Application.platform == RuntimePlatform.IPhonePlayer) {
 			OpenCameraRoll (Application.temporaryCachePath + "/tempImage");
 		} else if (Application.platform == RuntimePlatform.Android) {
-			
+			AndroidJavaClass nativeDialog = new AndroidJavaClass ("com.wapa5pow.plugin.CameraRoll");
+
+			AndroidJavaClass unityPlayer = new AndroidJavaClass ("com.unity3d.player.UnityPlayer"); 
+			AndroidJavaObject context = unityPlayer.GetStatic<AndroidJavaObject> ("currentActivity");
+
+			context.Call ("runOnUiThread", new AndroidJavaRunnable (() => {
+				nativeDialog.CallStatic (
+					"openCameraRoll",
+					context,
+					Application.temporaryCachePath + "/tempImage"
+				);
+			}));
+
 		}
 	}
 
