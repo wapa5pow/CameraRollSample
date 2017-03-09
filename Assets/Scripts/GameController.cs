@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -17,30 +18,38 @@ public class GameController : MonoBehaviour
 
 		if (Application.isEditor) {
 			
-		} else if (Application.platform == RuntimePlatform.IPhonePlayer) {
-			OpenCameraRoll (Application.temporaryCachePath + "/tempImage");
-		} else if (Application.platform == RuntimePlatform.Android) {
-			AndroidJavaClass nativeDialog = new AndroidJavaClass ("com.wapa5pow.plugin.CameraRoll");
+		} else
+		{
+		    switch (Application.platform)
+		    {
+		        case RuntimePlatform.IPhonePlayer:
+		            OpenCameraRoll(Application.temporaryCachePath + "/tempImage");
+		            break;
+		        case RuntimePlatform.Android:
+		            var nativeDialog = new AndroidJavaClass("com.wapa5pow.plugin.CameraRoll");
+		            var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+		            var context = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
 
-			AndroidJavaClass unityPlayer = new AndroidJavaClass ("com.unity3d.player.UnityPlayer"); 
-			AndroidJavaObject context = unityPlayer.GetStatic<AndroidJavaObject> ("currentActivity");
-
-			context.Call ("runOnUiThread", new AndroidJavaRunnable (() => {
-				nativeDialog.CallStatic (
-					"openCameraRoll",
-					context,
-					Application.temporaryCachePath + "/tempImage"
-				);
-			}));
-
+		            context.Call("runOnUiThread", new AndroidJavaRunnable(() =>
+		            {
+		                nativeDialog.CallStatic(
+		                    "openCameraRoll",
+		                    context,
+		                    Application.temporaryCachePath + "/tempImage"
+		                );
+		            }));
+		            break;
+		        default:
+		            throw new ArgumentOutOfRangeException();
+		    }
 		}
 	}
 
 	public void SetImage (string path)
 	{
-		Texture2D texture2D = new Texture2D (2, 2);
+		var texture2D = new Texture2D (2, 2);
 		texture2D.LoadImage (System.IO.File.ReadAllBytes (path));
-		Sprite sprite = Sprite.Create (texture2D, new Rect (0, 0, texture2D.width, texture2D.height), 0.5f * Vector2.one);
+		var sprite = Sprite.Create (texture2D, new Rect (0, 0, texture2D.width, texture2D.height), 0.5f * Vector2.one);
 		image.sprite = sprite;
 	}
 }
